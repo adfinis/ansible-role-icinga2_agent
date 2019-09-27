@@ -38,8 +38,8 @@
   apt_repository:
     repo: '{{ icinga2_agent_apt_backports.repo }}'
     state: present
-  when: 
-    - ansible_os_family == 'Debian' 
+  when:
+    - ansible_os_family == 'Debian'
     - ansible_distribution_release == 'stretch'
 
 - name: configure icinga epel repository
