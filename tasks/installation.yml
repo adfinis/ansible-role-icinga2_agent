@@ -63,7 +63,7 @@
   package:
     name: '{{ icinga2_agent_packages }}'
     state: present
-  when: 
+  when:
     - ansible_os_family != 'RedHat'
     - ansible_distribution_release != 'stretch'
 
