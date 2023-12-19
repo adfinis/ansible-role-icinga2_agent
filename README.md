@@ -3,7 +3,7 @@ ROLE ICINGA2\_AGENT
 
 [![image](https://img.shields.io/github/license/adfinis/ansible-role-icinga2_agent.svg?style=flat-square)](https://github.com/adfinis/ansible-role-icinga2_agent/blob/master/LICENSE)
 
-[![image](https://img.shields.io/travis/adfinis/ansible-role-icinga2_agent.svg?style=flat-square)](https://travis-ci.org/adfinis/ansible-role-icinga2_agent)
+[![image](https://img.shields.io/github/actions/workflow/status/adfinis/ansible-role-icinga2_agent/ansible-ci.yml?style=flat-square)](https://github.com/adfinis/ansible-role-icinga2_agent/actions)
 
 [![image](https://img.shields.io/badge/galaxy-adfinis.icinga2_agent-660198.svg?style=flat-square)](https://galaxy.ansible.com/adfinis/icinga2_agent)
 
