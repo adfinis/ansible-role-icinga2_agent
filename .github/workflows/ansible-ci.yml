@@ -13,26 +13,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-        with:
-          path: icinga2_agent
-
-      # Checkout Adfinis lint-rules
-      - uses: actions/checkout@v2
-        with:
-          repository: adfinis/ansible-lint-rules
-          path: lint-rules
-
-      - name: Install Ansible-Galaxy Requirements
-        run: ansible-galaxy install -r icinga2_agent/requirements.yml
-      - name: ansible-lint
-        uses: ansible/ansible-lint-action@main
-        with:
-          targets: icinga2_agent
-          args: "-R -r lint-rules"
-          override-deps: |
-            ansible~=2.10
-            ansible-lint~=6.0
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install requirements
+        run: ansible-galaxy install -r requirements.yml
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@main
       - name: yamllint
         uses: karancode/yamllint-github-action@v2.0.0
         with:
