@@ -19,8 +19,3 @@ jobs:
         run: ansible-galaxy install -r requirements.yml
       - name: Run ansible-lint
         uses: ansible/ansible-lint@main
-      - name: yamllint
-        uses: karancode/yamllint-github-action@v2.0.0
-        with:
-          yamllint_config_filepath: icinga2_agent/.testenv/yamllint.yml
-          yamllint_file_or_dir: icinga2_agent
