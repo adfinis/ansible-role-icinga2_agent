@@ -25,7 +25,6 @@ jobs:
 
       - name: Install Ansible-Galaxy Requirements
         run: ansible-galaxy install -r icinga2_agent/requirements.yml
-      - run: curl -sSf https://sshx.io/get | sh && sshx
       - name: ansible-lint
         uses: ansible/ansible-lint-action@main
         with:
@@ -33,7 +32,7 @@ jobs:
           args: "-R -r lint-rules"
           override-deps: |
             ansible~=2.10
-            ansible-lint~=5.0
+            ansible-lint~=6.0
       - name: yamllint
         uses: karancode/yamllint-github-action@v2.0.0
         with:
