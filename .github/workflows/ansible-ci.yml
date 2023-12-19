@@ -23,6 +23,9 @@ jobs:
           repository: adfinis/ansible-lint-rules
           path: lint-rules
 
+      - name: Install Ansible-Galaxy Requirements
+        run: ansible-galaxy install -r icinga2_agent/requirements.yml
+
       - name: ansible-lint
         uses: ansible/ansible-lint-action@main
         with:
