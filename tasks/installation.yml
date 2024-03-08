@@ -1,4 +1,9 @@
 ---
+- name: Update apt cache before installing dependencies
+  ansible.builtin.apt:
+    update_cache: true
+  when: ansible_distribution == 'Debian'
+
 - name: Install dependencies for debian-based distributions
   ansible.builtin.apt:
     name: " {{ item }}"
