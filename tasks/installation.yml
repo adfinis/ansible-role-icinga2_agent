@@ -7,7 +7,7 @@
   loop: "{{ icinga2_agent_debian_dependencies }}"
   when: ansible_distribution == 'Debian'
 
-- name: Install fedora epel repository
+- name: Install fedora epel repository  # noqa fqcn[action-core]
   ansible.builtin.yum:
     name: https://pkg.adfinis-sygroup.ch/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm
     state: present
@@ -116,7 +116,7 @@
     state: present
   when: ansible_os_family != 'RedHat'
 
-- name: Install icinga 2 agent packages
+- name: Install icinga 2 agent packages  # noqa fqcn[action-core]
   ansible.builtin.yum:
     name: "{{ icinga2_agent_packages }}"
     enablerepo: "{{ icinga2_agent_packages_enablerepo }}"
