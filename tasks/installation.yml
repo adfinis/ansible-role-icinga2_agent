@@ -7,11 +7,21 @@
   loop: "{{ icinga2_agent_debian_dependencies }}"
   when: ansible_distribution == 'Debian'
 
-- name: Install fedora epel repository  # noqa fqcn[action-core]
+- name: Install fedora epel repository
+  ansible.builtin.dnf:
+    name: https://pkg.adfinis-sygroup.ch/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm
+    state: present
+  when: ansible_distribution == 'RedHat'
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int > 7
+
+- name: Install fedora epel repository for CentOS < 8  # noqa fqcn[action-core]
   ansible.builtin.yum:
     name: https://pkg.adfinis-sygroup.ch/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm
     state: present
   when: ansible_distribution == 'RedHat'
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int <= 7
 
 - name: Deactivate the epel repository
   ansible.builtin.yum_repository:
@@ -116,12 +126,23 @@
     state: present
   when: ansible_os_family != 'RedHat'
 
-- name: Install icinga 2 agent packages  # noqa fqcn[action-core]
+- name: Install icinga 2 agent packages
+  ansible.builtin.dnf:
+    name: "{{ icinga2_agent_packages }}"
+    enablerepo: "{{ icinga2_agent_packages_enablerepo }}"
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int > 7
+
+- name: Install icinga 2 agent packages for CentOS < 8  # noqa fqcn[action-core]
   ansible.builtin.yum:
     name: "{{ icinga2_agent_packages }}"
     enablerepo: "{{ icinga2_agent_packages_enablerepo }}"
     state: present
-  when: ansible_os_family == 'RedHat'
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version | int <= 7
 
 - name: Start and enable icinga2
   ansible.builtin.service:
