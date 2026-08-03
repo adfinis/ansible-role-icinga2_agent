@@ -1,4 +1,6 @@
 ---
+#Debian
+
 - name: Remove old icinga apt repository without key
   ansible.builtin.apt_repository:
     repo: "deb http://packages.icinga.com/{{ ansible_distribution | lower }} icinga-{{ ansible_distribution_release }} main"
@@ -18,53 +20,23 @@
     - ansible_distribution_major_version | int >=13
   notify: Update package repository
 
+# Remove as backports are not available for stretch anymore?
+#- name: Configure stretch-backports repository
+#  ansible.builtin.apt_repository:
+#    repo: "{{ stretch_backports_apt.repo }}"
+#    state: present
+#  when:
+#    - ansible_os_family == 'Debian'
+#    - ansible_distribution_release == 'stretch'
+#  notify: Update package repository
+
 - name: Install dependencies for debian-based distributions
   ansible.builtin.apt:
     name: " {{ item }}"
     state: present
     update_cache: true
   loop: "{{ icinga2_agent_debian_dependencies }}"
-  when: ansible_distribution == 'Debian'
-
-- name: Install fedora epel repository
-  ansible.builtin.dnf:
-    name: https://download.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm
-    state: present
-  when:
-    - ansible_os_family == 'RedHat'
-    - ansible_distribution_major_version | int > 7
-
-- name: Install fedora epel repository for CentOS 7  # noqa fqcn[action-core]
-  ansible.builtin.yum:
-    name: https://archives.fedoraproject.org/pub/archive/epel/7/x86_64/Packages/e/epel-release-7-14.noarch.rpm
-    state: present
-  when:
-    - ansible_os_family == 'RedHat'
-    - ansible_distribution_major_version | int == 7
-
-- name: Install fedora epel repository for CentOS 6  # noqa fqcn[action-core]
-  ansible.builtin.yum:
-    name: https://archives.fedoraproject.org/pub/archive/epel/6/x86_64/Packages/e/epel-release-6-8.noarch.rpm
-    state: present
-  when:
-    - ansible_os_family == 'RedHat'
-    - ansible_distribution_major_version | int == 6
-
-- name: Deactivate the epel repository
-  ansible.builtin.yum_repository:
-    name: epel
-    baseurl: "{{ icinga2_agent_yum_epel_baseurl }}"
-    description: Extra Packages for Enterprise Linux 7 - $basearch
-    enabled: false
-    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}
-  when: ansible_distribution == 'RedHat'
-
-- name: Import epel gpg key.
-  ansible.builtin.rpm_key:
-    key: /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}
-    state: present
-  when: ansible_distribution == 'RedHat'
-  ignore_errors: "{{ ansible_check_mode }}"
+  when: ansible_os_family == 'Debian'
 
 - name: Install icinga apt key
   ansible.builtin.apt_key:
@@ -100,24 +72,59 @@
     - ansible_distribution_major_version | int >= 13
   notify: Update package repository
 
-- name: Configure stretch-backports repository
-  ansible.builtin.apt_repository:
-    repo: "{{ stretch_backports_apt.repo }}"
-    state: present
+#Redhat
+
+#- name: Import epel gpg key.
+#  ansible.builtin.rpm_key:
+#    key: /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}
+#    state: present
+#  when: ansible_os_family == 'RedHat'
+#  ignore_errors: "{{ ansible_check_mode }}"
+
+#- name: Install fedora epel repository for Rhel 6  # noqa fqcn[action-core]
+#  ansible.builtin.yum:
+#    name: https://dl.fedoraproject.org/pub/archive/epel/$releaserver/$basearch/Packages/e/epel-release-6-8.noarch.rpm
+#    state: present
+#  when:
+#    - ansible_os_family == 'RedHat'
+#    - ansible_distribution_major_version | int == 6
+#
+#- name: Install fedora epel repository for Rhel   # noqa fqcn[action-core]
+#  ansible.builtin.yum:
+#    name: https://dl.fedoraproject.org/pub/archive/epel/$releaserver/$basearch/Packages/e/epel-release-7-14.noarch.rpm
+#    state: present
+#  when:
+#    - ansible_os_family == 'RedHat'
+#    - ansible_distribution_major_version | int <= 8
+
+- name: Enable CodeReady Builder for RHEL (8, 9, and 10)
+  community.general.rhsm_repository:
+    name: "codeready-builder-for-rhel-{{ ansible_distribution_major_version }}-x86_64-rpms"
+    state: enabled
+  when: ansible_distribution == "RedHat"
+
+- name: Install fedora epel repository for rhel
+  ansible.builtin.yum_repository:
+    name: epel-fedora-repository
+    baseurl: https://dl.fedoraproject.org/pub/epel/{{ ansible_distribution_major_version }}/Everything/x86_64/
+    description: Extra Packages for Enterprise Linux $releaserver - $basearch
+    enabled: true
+    gpgkey: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}
   when:
-    - ansible_os_family == 'Debian'
-    - ansible_distribution_release == 'stretch'
-  notify: Update package repository
+    - ansible_distribution == 'RedHat'
+
+# why deactivate?
+#- name: Deactivate the epel repository
+#  ansible.builtin.yum_repository:
+#    name: epel
+#    baseurl: "{{ icinga2_agent_yum_epel_baseurl }}"
+#    description: Extra Packages for Enterprise Linux 7 - $basearch
+#    enabled: false
+#    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}
+#  when: ansible_distribution == 'RedHat'
 
 - name: Flush handlers
   ansible.builtin.meta: flush_handlers
-- name: Configure icinga epel repository
-  ansible.builtin.yum_repository:
-    name: icinga-stable-release
-    description: icinga2 latest repository
-    baseurl: "{{ icinga2_agent_yum.repo }}"
-    gpgkey: "{{ icinga2_agent_yum.key }}"
-  when: ansible_os_family == 'RedHat'
 
 - name: Configure extra yum repos
   ansible.builtin.yum_repository:
@@ -137,6 +144,17 @@
     selevel: s0
   with_items: "{{ icinga2_agent_yum_extra_repos }}"
   when: ansible_os_family == 'RedHat'
+
+
+- name: Install icinga 2 agent packages
+  ansible.builtin.dnf:
+    name: "{{ icinga2_agent_packages }}"
+    enablerepo: "{{ icinga2_agent_packages_enablerepo }}"
+    state: present
+  when:
+    - ansible_os_family == 'RedHat'
+
+#Suse
 
 - name: Fetch icinga suse repo file
   ansible.builtin.uri:
@@ -158,39 +176,46 @@
   register: icinga2_agent_register_icinga_suse_repo_stat
   when: ansible_os_family == 'Suse'
 
+#- name: Import Icinga GPG key
+#  ansible.builtin.rpm_key:
+#    state: present
+#    key: https://packages.icinga.com/icinga.key
+#  when: ansible_os_family == 'Suse'
+
 - name: Configure icinga suse repository
   community.general.zypper_repository:
     repo: "{{ icinga2_agent_suse.repo }}"
+    auto_import_keys: yes
   when:
     - ansible_os_family == 'Suse'
     - not icinga2_agent_register_icinga_suse_repo_stat.stat.exists
 
+- name: configure server:monitoring repository
+  community.general.zypper_repository:
+    name: server_monitoring
+    repo: "https://download.opensuse.org/repositories/server:/monitoring/15.6/"
+    auto_import_keys: yes
+  when: ansible_os_family == 'Suse'
+
+- name: Enable SUSE Package Hub via CLI
+  ansible.builtin.command: "SUSEConnect -p PackageHub/{{ ansible_distribution_version }}/x86_64"
+  register: packagehub_result
+  changed_when: "'Successfully registered' in packagehub_result.stdout"
+  failed_when: 
+    - packagehub_result.rc != 0
+    - "'Already registered' not in packagehub_result.stdout"
+  when: ansible_distribution == 'SLES'
+
+# Generic
 - name: Install icinga 2 agent packages
   ansible.builtin.package:
     name: "{{ icinga2_agent_packages }}"
     state: present
   when: ansible_os_family != 'RedHat'
 
-- name: Install icinga 2 agent packages
-  ansible.builtin.dnf:
-    name: "{{ icinga2_agent_packages }}"
-    enablerepo: "{{ icinga2_agent_packages_enablerepo }}"
-    state: present
-  when:
-    - ansible_os_family == 'RedHat'
-    - ansible_distribution_major_version | int > 7
-
-- name: Install icinga 2 agent packages for CentOS < 8  # noqa fqcn[action-core]
-  ansible.builtin.yum:
-    name: "{{ icinga2_agent_packages }}"
-    enablerepo: "{{ icinga2_agent_packages_enablerepo }}"
-    state: present
-  when:
-    - ansible_os_family == 'RedHat'
-    - ansible_distribution_major_version | int < 8
-
 - name: Start and enable icinga2
   ansible.builtin.service:
     name: icinga2
     enabled: true
     state: started
+
